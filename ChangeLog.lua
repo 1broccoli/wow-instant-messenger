@@ -16,6 +16,15 @@ local function addBetaEntry(version, rdate, description, transmitted)
 end
 
 -- ChangeLog Entries.
+addEntry("3.9.1", "02/08/2026 by 1Broccoli", [[
+    *Fix BNet whisper handling by validating BN IDs before sending.
+    *Normalize cross-realm whisper names from tab-complete (Name-Server).
+    *Avoid reusing whisper windows when connection type changes.
+    *Add Anniversary client shims (SetGradient, GetMouseFocus, chat event/filter APIs).
+    *Use resize bounds fallback and proper UIParent references for SetParent.
+    *Import missing Lua globals in WIM env (type, pcall).
+]]);
+
 addEntry("3.9.0", "03/31/2021", [[
 	*TOC update for 9.0.5
 	*Compatible with TBC Beta

@@ -74,7 +74,11 @@ function ApplySkinToWindow(obj)
     
     local SelectedSkin = WIM:GetSelectedSkin();
     
-    obj:SetMinResize(SelectedSkin.message_window.min_width, SelectedSkin.message_window.min_height);
+    if(type(obj.SetResizeBounds) == "function") then
+        obj:SetResizeBounds(SelectedSkin.message_window.min_width, SelectedSkin.message_window.min_height);
+    elseif(type(obj.SetMinResize) == "function") then
+        obj:SetMinResize(SelectedSkin.message_window.min_width, SelectedSkin.message_window.min_height);
+    end
     
     --set backdrop edges and background textures.
     local tl = obj.widgets.Backdrop.tl;

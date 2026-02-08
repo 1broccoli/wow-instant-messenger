@@ -230,6 +230,55 @@ function WIM.getGradientFromColor(...)
     return r1, g1, b1, r2, g2, b2;
 end
 
+local gradientUsesColorObjects;
+local function applyGradient(texture, orientation, r1, g1, b1, r2, g2, b2)
+    if(not texture or not texture.SetGradient) then
+        return;
+    end
+
+    if(gradientUsesColorObjects == nil) then
+        local ok = pcall(texture.SetGradient, texture, orientation, r1, g1, b1, r2, g2, b2);
+        if(ok) then
+            gradientUsesColorObjects = false;
+            return;
+        end
+        gradientUsesColorObjects = true;
+    end
+
+    if(gradientUsesColorObjects) then
+        if(type(CreateColor) == "function") then
+            texture:SetGradient(orientation, CreateColor(r1, g1, b1), CreateColor(r2, g2, b2));
+        end
+    else
+        texture:SetGradient(orientation, r1, g1, b1, r2, g2, b2);
+    end
+end
+
+function WIM.SetGradient(texture, orientation, ...)
+    local r1, g1, b1, r2, g2, b2 = WIM.getGradientFromColor(...);
+    applyGradient(texture, orientation, r1, g1, b1, r2, g2, b2);
+end
+
+function WIM.SetGradientRGB(texture, orientation, r1, g1, b1, r2, g2, b2)
+    applyGradient(texture, orientation, r1, g1, b1, r2, g2, b2);
+end
+
+function WIM.GetMouseFocus()
+    local getMouseFocus = _G.GetMouseFocus;
+    if(type(getMouseFocus) == "function") then
+        return getMouseFocus();
+    end
+
+    local getMouseFoci = _G.GetMouseFoci;
+    if(type(getMouseFoci) == "function") then
+        local foci = getMouseFoci();
+        if(foci and foci[1]) then
+            return foci[1];
+        end
+    end
+    return nil;
+end
+
 
 --------------------------------------
 --         String Functions         --

@@ -4,7 +4,13 @@ local WIM = WIM;
 local _G = _G;
 local CreateFrame = CreateFrame;
 local IsShiftKeyDown = IsShiftKeyDown;
-local GetMouseFocus = GetMouseFocus;
+local GetMouseFocus = function()
+    local fun = WIM.GetMouseFocus or _G.GetMouseFocus;
+    if(type(fun) == "function") then
+        return fun();
+    end
+    return nil;
+end
 local table = table;
 local pairs = pairs;
 local math = math;

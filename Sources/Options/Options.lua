@@ -150,7 +150,7 @@ local function createCategory(index)
     cat.bg = cat:CreateTexture(nil, "BACKGROUND");
     cat.bg:SetAllPoints();
     cat.bg:SetColorTexture(1, 1, 1);
-    cat.bg:SetGradient("VERTICAL", getGradientFromColor("658daa"));
+    WIM.SetGradient(cat.bg, "VERTICAL", "658daa");
     cat.text = _G.getglobal(cat:GetName().."Text");
     cat.text:ClearAllPoints();
     cat.text:SetPoint("CENTER");
@@ -226,13 +226,13 @@ function options.UpdateCategories(self)
                 else
                     cat:SetPoint("BOTTOMLEFT", prevCat, "TOPLEFT", 0, 0);
                 end
-                cat.bg:SetGradient("VERTICAL", getGradientFromColor("658daa"));
+                WIM.SetGradient(cat.bg, "VERTICAL", "658daa");
                 cat:Enable();
                 prevCat = cat;
             else
                 -- first item
                 cat:Disable();
-                cat.bg:SetGradient("VERTICAL", getGradientFromColor("111111"));
+                WIM.SetGradient(cat.bg, "VERTICAL", "111111");
                 cat:SetPoint("TOPLEFT", self, "TOPLEFT", 0, 0);
                 self.sub:SetPoint("TOPLEFT", cat, "BOTTOMLEFT", 0, 0);
                 self.sub:SetPoint("TOPRIGHT", cat, "BOTTOMRIGHT", 0, 0);

@@ -17,7 +17,13 @@ local _G = _G;
 local CreateFrame = CreateFrame;
 local UIFrameFadeIn = UIFrameFadeIn;
 local UIFrameFadeOut = UIFrameFadeOut;
-local GetMouseFocus = GetMouseFocus;
+local GetMouseFocus = function()
+        local fun = WIM.GetMouseFocus or _G.GetMouseFocus;
+        if(type(fun) == "function") then
+                return fun();
+        end
+        return nil;
+end
 local table = table;
 local string = string;
 local IsShiftKeyDown = IsShiftKeyDown;
@@ -910,14 +916,19 @@ local function instantiateWindow(obj)
                 local chat_type = self.chatType == "battleground" and "INSTANCE_CHAT" or string.upper(self.chatType);
                 local color = _G.ChatTypeInfo[chat_type]; -- Drii: ticket 344
                 icon:SetTexCoord(0,1,0,1);
-                icon:SetGradient("VERTICAL", color.r, color.g, color.b, color.r, color.g, color.b);
+                WIM.SetGradientRGB(icon, "VERTICAL", color.r, color.g, color.b, color.r, color.g, color.b);
                 if(GetSelectedSkin().message_window.widgets.from.use_class_color) then
                                 self.widgets.from:SetTextColor(color.r, color.g, color.b);
                 end
         else
                 local classTag = obj.class;
-                icon:SetGradient("VERTICAL", 1, 1, 1, 1, 1, 1);
-                if(self.bn and self.bn.client == _G.BNET_CLIENT_SC2) then
+                WIM.SetGradientRGB(icon, "VERTICAL", 1, 1, 1, 1, 1, 1);
+                if(self.class ~= "" and constants.classes[self.class]) then
+                        classTag = string.lower(constants.classes[self.class].tag);
+                        classTag = string.gsub(classTag, "f$", "");
+                        icon:SetTexture(GetSelectedSkin().message_window.widgets.class_icon.texture);
+                        icon:SetTexCoord(unpack(GetSelectedSkin().message_window.widgets.class_icon[classTag]));
+                elseif(self.bn and self.bn.client == _G.BNET_CLIENT_SC2) then
                                 classTag = "sc2";--"Interface\\FriendsFrame\\Battlenet-Sc2icon"
                                 icon:SetTexture(GetSelectedSkin().message_window.widgets.client_icon.texture);
                                 icon:SetTexCoord(unpack(GetSelectedSkin().message_window.widgets.client_icon[classTag]));
@@ -958,12 +969,7 @@ local function instantiateWindow(obj)
                 	icon:SetTexture(GetSelectedSkin().message_window.widgets.class_icon.texture);
                 	icon:SetTexCoord(unpack(GetSelectedSkin().message_window.widgets.class_icon[classTag]));
                 else
-                	if(constants.classes[self.class]) then
-                		classTag = string.lower(constants.classes[self.class].tag);
-                        classTag = string.gsub(classTag, "f$", "");
-                	else
-                		classTag = "blank";
-                	end
+                        classTag = "blank";
                 	icon:SetTexture(GetSelectedSkin().message_window.widgets.class_icon.texture);
                 	icon:SetTexCoord(unpack(GetSelectedSkin().message_window.widgets.class_icon[classTag]));
                 end
@@ -1173,22 +1179,34 @@ local function instantiateWindow(obj)
     end
 
     obj.UpdateProps = function(self)
+        local function safeSetAlpha(obj, alpha)
+                        if(not obj or type(alpha) ~= "number") then
+                                return;
+                        end
+                        if(alpha > 1) then
+                                alpha = alpha / 100;
+                        end
+                        if(type(obj.SetAlpha) == "function") then
+                                _G.pcall(obj.SetAlpha, obj, alpha);
+                        end
+        end
+
         self:SetFrameStrata(db.winSize.strata);
 	self:SetScale(db.winSize.scale/100);
-	self.widgets.Backdrop:SetAlpha(db.windowAlpha/100);
+        safeSetAlpha(self.widgets.Backdrop, db.windowAlpha/100);
 	local Path,_,Flags = self.widgets.chat_display:GetFont();
         self:SetClampedToScreen(not WindowParent.animUp and db.clampToScreen);
 	self.widgets.chat_display:SetFont(Path or _G["ChatFontNormal"]:GetFont(),db.fontSize+2,Flags);
-	self.widgets.chat_display:SetAlpha(1);
+        safeSetAlpha(self.widgets.chat_display, 1);
 	self.widgets.chat_display:SetIndentedWordWrap(db.wordwrap_indent);
-	self.widgets.msg_box:SetAlpha(1);
+        safeSetAlpha(self.widgets.msg_box, 1);
 	self.widgets.msg_box:SetAltArrowKeyMode(db.ignoreArrowKeys);
 
-	self.widgets.from:SetAlpha(1);
-	self.widgets.char_info:SetAlpha(1);
-	self.widgets.close:SetAlpha(db.windowAlpha);
-	self.widgets.scroll_up:SetAlpha(db.windowAlpha);
-	self.widgets.scroll_down:SetAlpha(db.windowAlpha);
+        safeSetAlpha(self.widgets.from, 1);
+        safeSetAlpha(self.widgets.char_info, 1);
+        safeSetAlpha(self.widgets.close, db.windowAlpha);
+        safeSetAlpha(self.widgets.scroll_up, db.windowAlpha);
+        safeSetAlpha(self.widgets.scroll_down, db.windowAlpha);
 
         if(not self.customSize) then
                 self:SetWidth(db.winSize.width);
@@ -1214,7 +1232,11 @@ local function instantiateWindow(obj)
                         end
                 end
 	end
-        self:SetMinResize(minWidth, minHeight);
+        if(type(self.SetResizeBounds) == "function") then
+            self:SetResizeBounds(minWidth, minHeight);
+        elseif(type(self.SetMinResize) == "function") then
+            self:SetMinResize(minWidth, minHeight);
+        end
         self:SetWidth(_G.math.max(minWidth, self:GetWidth()));
         self:SetHeight(_G.math.max(minHeight, self:GetHeight()));
         self.initialized = true;
@@ -1235,7 +1257,7 @@ local function instantiateWindow(obj)
 			self:Hide_Normal();
 			self:ResetAnimation();
 		else
-                        self.widgets.chat_display:SetParent("UIParent");
+                        self.widgets.chat_display:SetParent(_G.UIParent);
                         self.widgets.chat_display:Hide();
 			local a = self.animation;
 			obj:SetClampedToScreen(false);

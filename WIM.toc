@@ -1,12 +1,13 @@
 ## Interface: 90105
 ## Interface-Classic: 11400
-## Interface-BCC: 20502
+## Interface-BCC: 20505
 
 ## X-Curse-Project-ID: 7474
 ## X-WoWI-ID: 5342
 
 ## Title: WIM
 ## Author: Pazza (Bronzebeard), (Updated by Sylvanaar/MysticalOS/Humfras)
+## Contributor: (Curseforge) Pegga or (Github) 1broccoli
 ## Version: @project-version@
 ## Notes: Give whispers an instant messenger feel.
 ## Notes-esES: Dale a los susurros una sensación de mensajería instantánea.
@@ -25,6 +26,7 @@ Libs\Includes.xml
 Sources\Namespace.lua
 Sources\Locale.lua
 Localization\Includes.xml
+
 
 WIM.lua
 

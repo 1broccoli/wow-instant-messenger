@@ -82,11 +82,11 @@ local function initialize()
         --querie guild roster
         if( _G.IsInGuild() ) then
 			-- H.Sch. - ReglohPri - this is deprecated -> GuildRoster() - changed to C_GuildInfo.GuildRoster()
-			if not isShadowlands then
-				--for classic
-				_G.GuildRoster();
-			else
+			-- Check which API is available (varies by WoW version)
+			if _G.C_GuildInfo and _G.C_GuildInfo.GuildRoster then
 				_G.C_GuildInfo.GuildRoster();
+			elseif _G.GuildRoster then
+				_G.GuildRoster();
 			end
         end
 
@@ -373,7 +373,11 @@ end
 
 function WIM.honorChatFrameEventFilter(event, ...)
         local arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15 = ...;
-        local chatFilters = _G.ChatFrame_GetMessageEventFilters(event);
+    local getFilters = _G.ChatFrame_GetMessageEventFilters;
+    if(type(getFilters) ~= "function") then
+        return false, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15;
+    end
+    local chatFilters = getFilters(event);
 	local filter = false;
         if chatFilters then
             local narg1, narg2, narg3, narg4, narg5, narg6, narg7, narg8, narg9, narg10, narg11, narg12, narg13, narg14, narg15;

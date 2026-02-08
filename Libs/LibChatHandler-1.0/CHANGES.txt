@@ -1,0 +1,30 @@
+tag 59f92ff8f0d89633c10943602c53eeb7d55d7d0f r25
+Author:	John Langone <johnlangone@gmail.com>
+Date:	Mon Nov 21 16:49:14 2022 -0500
+
+Migrate to GitHuB
+
+commit 254a8a51082351bf7f56ee7324082f94d6d1117a
+Author: John Langone <johnlangone@gmail.com>
+Date:   Mon Nov 21 16:48:34 2022 -0500
+
+    README
+
+commit 2e6ab8d7691df4c819670167646a129babb6ecdc
+Author: John Langone <johnlangone@gmail.com>
+Date:   Mon Nov 21 16:35:17 2022 -0500
+
+    README
+
+commit 0138cd15d0d578252c779add0c23d5884ab63004
+Author: John Langone <johnlangone@gmail.com>
+Date:   Mon Nov 21 16:33:19 2022 -0500
+
+    Documentation WIP
+
+commit d39ea4e1b41916a12bd1c8673af25ab9e5632176
+Author: John Langone <johnlangone@gmail.com>
+Date:   Mon Nov 21 16:14:46 2022 -0500
+
+    Documentation WIP
+

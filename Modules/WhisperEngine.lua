@@ -21,6 +21,7 @@ local gsub = gsub;
 local strlen = strlen;
 local strsub = strsub;
 local string = string;
+local type = _G.type;
 local IsShiftKeyDown = IsShiftKeyDown;
 local select = select;
 local unpack = unpack;
@@ -184,6 +185,8 @@ local function getWhisperWindowByUser(user, isBN, bnID)
 		end
 	else
 		user = string.gsub(user," ","") -- Drii: WoW build15050 whisper bug for x-realm server with space
+		-- Handle modern cross-realm format (Name-Server): strip server suffix
+		user = string.gsub(user, "-[^-]+$", ""); -- removes everything after the last hyphen (server name)
 	    user = FormatUserName(user);
 	end
     if(not user or user == "") then
@@ -192,14 +195,24 @@ local function getWhisperWindowByUser(user, isBN, bnID)
     end
     local safeName = string.lower(user);
     local obj = Windows[user];
-    if(obj and obj.type == "whisper") then
-        -- if the whisper window exists, return the object
+    if(obj and obj.type == "whisper" and obj.isBN == isBN) then
+        -- if the whisper window exists and isBN status matches, return the object
+        -- Update bn.id if we have a new valid one (in case it was missing before)
+        if(isBN and bnID) then
+            obj.bn = obj.bn or {};
+            obj.bn.id = bnID;
+        end
         return obj;
-    else
-        -- otherwise, create a new one.
+    end
+    
+    if(not obj or obj.type ~= "whisper" or obj.isBN ~= isBN) then
+        -- otherwise, create a new one (or replace if isBN status changed)
         Windows[user] = CreateWhisperWindow(user);
 		Windows[user].isBN = isBN;
 		Windows[user].bn = Windows[user].bn or {};
+		if(isBN and bnID) then
+			Windows[user].bn.id = bnID;
+		end
         if(db.whoLookups or lists.gm[user] or Windows[user].isBN) then
             Windows[user]:SendWho(); -- send who request
         end
@@ -255,9 +268,11 @@ function SendSplitMessage(PRIORITY, HEADER, theMsg, CHANNEL, EXTRA, to)
                                 local index = _G.tonumber(string.match(link, "(%d+)"));
                                 return splitMessageLinks[index] or link;
                         end);
-			if(Windows[to] and Windows[to].isBN) then
-				_G.BNSendWhisper(Windows[to].bn.id, chunk);
-			else
+			-- Only use BNSendWhisper if we have a valid numeric BNet ID (> 0)
+			local bnID = Windows[to] and Windows[to].bn and Windows[to].bn.id;
+			if(bnID and type(bnID) == "number" and bnID > 0) then
+				_G.BNSendWhisper(bnID, chunk);
+			elseif(Windows[to]) then
 					_G.ChatThrottleLib:SendChatMessage(PRIORITY, HEADER, chunk, CHANNEL, EXTRA, to);
                         end
 			chunk = (splitMessage[i] or "").." ";
@@ -280,8 +295,10 @@ RegisterWidgetTrigger("msg_box", "whisper", "OnEnterPressed", function(self)
         local msgCount = math.ceil(string.len(msg)/255);
         if(msgCount == 1) then
             Windows[obj.theUser].msgSent = true;
-	    if(obj.isBN) then
-		_G.BNSendWhisper(obj.bn.id, msg);
+	    -- Only use BNSendWhisper if we have a valid numeric BNet ID (> 0)
+	    local bnID = obj.bn and obj.bn.id;
+	    if(bnID and type(bnID) == "number" and bnID > 0) then
+		_G.BNSendWhisper(bnID, msg);
 	    else
 	        _G.ChatThrottleLib:SendChatMessage("ALERT", "WIM", msg, "WHISPER", nil, obj.theUser);
 	    end
@@ -679,7 +696,7 @@ function CF_SentBNetTell(target)
 		if (db.pop_rules.whisper.intercept and db.pop_rules.whisper[curState].onSend) then
 			local bNetID = _G.BNet_GetBNetIDAccount(target);
 			target = _G.Ambiguate(target, "none")--For good measure, ambiguate again cause it seems some mods interfere with this process
-			local win = getWhisperWindowByUser(target, true, bNetID);
+			local win = getWhisperWindowByUser(target, bNetID and true, bNetID);
 			if not win then return end	--due to a client bug, we can not receive the other player's name, so do nothing
 			win.widgets.msg_box.setText = 1;
 			win:Pop(true); -- force popup
@@ -729,7 +746,10 @@ end
 hooksecurefunc("ChatEdit_ExtractTellTarget", CF_ExtractTellTarget);
 hooksecurefunc("ChatFrame_OpenChat", CF_OpenChat);
 
-hooksecurefunc("ChatFrame_SendBNetTell", CF_SentBNetTell);
+-- ChatFrame_SendBNetTell may not exist in all WoW versions (e.g., TBC Classic)
+if _G.ChatFrame_SendBNetTell then
+	hooksecurefunc("ChatFrame_SendBNetTell", CF_SentBNetTell);
+end
 
 --Hook ChatFrame_ReplyTell & ChatFrame_ReplyTell2
 hooksecurefunc("ChatFrame_ReplyTell", function() replyTellTarget(true) end);

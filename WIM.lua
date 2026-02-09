@@ -39,6 +39,7 @@ stats = {};
 db_defaults = {
     enabled = true,
     showToolTips = true,
+    hookSystemMessages = false,
     modules = {},
     alertedPrivateServer = false,
 };

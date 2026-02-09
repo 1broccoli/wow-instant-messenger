@@ -158,7 +158,9 @@ function WhisperEngine:OnEnableWIM()
         WhisperEngine:RegisterChatEvent("CHAT_MSG_WHISPER_INFORM");
         WhisperEngine:RegisterChatEvent("CHAT_MSG_AFK");
         WhisperEngine:RegisterChatEvent("CHAT_MSG_DND");
-        WhisperEngine:RegisterChatEvent("CHAT_MSG_SYSTEM");
+        if(db.hookSystemMessages) then
+            WhisperEngine:RegisterChatEvent("CHAT_MSG_SYSTEM");
+        end
         WhisperEngine:RegisterChatEvent("CHAT_MSG_BN_WHISPER");
         WhisperEngine:RegisterChatEvent("CHAT_MSG_BN_WHISPER_INFORM");
 		WhisperEngine:RegisterChatEvent("CHAT_MSG_BN_INLINE_TOAST_ALERT");
@@ -169,7 +171,9 @@ function WhisperEngine:OnDisableWIM()
         WhisperEngine:UnregisterChatEvent("CHAT_MSG_WHISPER_INFORM");
         WhisperEngine:UnregisterChatEvent("CHAT_MSG_AFK");
         WhisperEngine:UnregisterChatEvent("CHAT_MSG_DND");
-        WhisperEngine:UnregisterChatEvent("CHAT_MSG_SYSTEM");
+        if(db.hookSystemMessages) then
+            WhisperEngine:UnregisterChatEvent("CHAT_MSG_SYSTEM");
+        end
         WhisperEngine:UnregisterChatEvent("CHAT_MSG_BN_WHISPER");
         WhisperEngine:UnregisterChatEvent("CHAT_MSG_BN_WHISPER_INFORM");
 		WhisperEngine:UnregisterChatEvent("CHAT_MSG_BN_INLINE_TOAST_ALERT");

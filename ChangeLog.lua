@@ -16,6 +16,10 @@ local function addBetaEntry(version, rdate, description, transmitted)
 end
 
 -- ChangeLog Entries.
+addEntry("3.9.2", "02/11/2026 by 1Broccoli", [[
+    *Fix options list gradient on clients missing SetGradientAlpha.
+]]);
+
 addEntry("3.9.1", "02/08/2026 by 1Broccoli", [[
     *Fix BNet whisper handling by validating BN IDs before sending.
     *Normalize cross-realm whisper names from tab-complete (Name-Server).

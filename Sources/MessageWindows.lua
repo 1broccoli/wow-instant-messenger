@@ -1,3 +1,14 @@
+        -- Global item link handler for WIM message box
+        local orig_ChatEdit_InsertLink = _G.ChatEdit_InsertLink
+        _G.ChatEdit_InsertLink = function(link)
+            if WIM_EditBoxInFocus and WIM_EditBoxInFocus:IsVisible() and WIM_EditBoxInFocus:HasFocus() then
+                WIM_EditBoxInFocus:Insert(link)
+                return true
+            end
+            if orig_ChatEdit_InsertLink then
+                return orig_ChatEdit_InsertLink(link)
+            end
+        end
         WindowSoupBowl.available = WindowSoupBowl.available + 1;
         WindowSoupBowl.used = WindowSoupBowl.used - 1;
 local WIM = WIM;
@@ -388,10 +399,9 @@ local function MessageWindow_MsgBox_OnEnterPressed()
         this:AddHistoryLine(this:GetText());
     end
     this:SetText("");
-    if(not WIM.db.keepFocus) then
-        this:Hide();
-        this:Show();
-    elseif(not IsResting() and WIM.db.keepFocusRested) then
+    if(WIM.db.keepFocus) then
+        this:SetFocus();
+    else
         this:Hide();
         this:Show();
     end
@@ -578,6 +588,17 @@ local function instantiateMessageWindowObj(obj)
     msg_box:SetScript("OnTextChanged", MessageWindow_MsgBox_OnTextChanged);
     msg_box:SetScript("OnUpdate", MessageWindow_MsgBox_OnUpdate);
     msg_box:SetScript("OnMouseUp", MessageWindow_MsgBox_OnMouseUp);
+        -- Allow item link insertion via shift-click
+        msg_box:SetScript("OnChar", function(self)
+            if (IsShiftKeyDown() and arg1 == "[" and ChatEdit_InsertLink) then
+                ChatEdit_InsertLink(GetCursorInfo() or "");
+            end
+        end);
+        msg_box:SetScript("OnReceiveDrag", function(self)
+            if (ChatEdit_InsertLink) then
+                ChatEdit_InsertLink(GetCursorInfo() or "");
+            end
+        end);
     
     
     local shortcuts = CreateFrame("Frame", fName.."ShortcutFrame", obj);

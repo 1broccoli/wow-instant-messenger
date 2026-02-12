@@ -2,6 +2,10 @@
 local WIM = WIM;
 local _G = _G;
 local Notes = WIM.Notifications;
+if Notes == nil then
+    Notes = {};
+    WIM.Notifications = Notes;
+end
 local NoteIndex = 1;
 
 --set namespace

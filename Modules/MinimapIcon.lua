@@ -160,82 +160,113 @@ local function createMinimapIcon()
     local icon = CreateFrame('Button', 'WIM3MinimapButton');
     icon.Load = function(self)
         self:SetFrameStrata('MEDIUM');
-	self:SetWidth(31); self:SetHeight(31);
-	self:SetFrameLevel(8);
+        self:SetWidth(31); self:SetHeight(31);
+        self:SetFrameLevel(8);
         self:SetMovable(true);
-	self:RegisterForClicks('LeftButtonUp', "RightButtonUp");
-	self:SetHighlightTexture('Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight');
+        self:RegisterForClicks('LeftButtonUp', "RightButtonUp");
+        self:SetHighlightTexture('Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight');
 
-	local overlay = self:CreateTexture(nil, 'OVERLAY');
-	overlay:SetWidth(53); overlay:SetHeight(53);
-	overlay:SetTexture('Interface\\Minimap\\MiniMap-TrackingBorder');
-	overlay:SetPoint('TOPLEFT');
+        local overlay = self:CreateTexture(nil, 'OVERLAY');
+        overlay:SetWidth(53); overlay:SetHeight(53);
+        overlay:SetTexture('Interface\\Minimap\\MiniMap-TrackingBorder');
+        overlay:SetPoint('TOPLEFT');
 
-	local bg = self:CreateTexture(nil, 'BACKGROUND');
-	bg:SetWidth(20); bg:SetHeight(20);
-	bg:SetTexture('Interface\\CharacterFrame\\TempPortraitAlphaMask');
-	bg:SetPoint("TOPLEFT", 6, -6)
-	self.backGround = bg;
+        local bg = self:CreateTexture(nil, 'BACKGROUND');
+        bg:SetWidth(20); bg:SetHeight(20);
+        bg:SetTexture('Interface\\CharacterFrame\\TempPortraitAlphaMask');
+        bg:SetPoint("TOPLEFT", 6, -6)
+        self.backGround = bg;
 
-	local text = self:CreateFontString(nil, "BACKGROUND");
-	text:SetFont("Fonts\\SKURRI.ttf", 16);
-	text:SetAllPoints(bg);
-	text:SetText("");
-	self.text = text;
+        local text = self:CreateFontString(nil, "BACKGROUND");
+        text:SetFont("Fonts\\SKURRI.ttf", 16);
+        text:SetAllPoints(bg);
+        text:SetText("");
+        self.text = text;
 
-	local ticon = self:CreateTexture(nil, 'BORDER');
-	ticon:SetWidth(20); ticon:SetHeight(20);
-	ticon:SetTexture('Interface\\AddOns\\'..addonTocName..'\\Skins\\Default\\minimap');
-	ticon:SetTexCoord(0.05, 0.95, 0.05, 0.95);
-	ticon:SetPoint("TOPLEFT", 6, -5)
-	self.icon = ticon;
+        local ticon = self:CreateTexture(nil, 'BORDER');
+        ticon:SetWidth(20); ticon:SetHeight(20);
+        ticon:SetTexture('Interface\\AddOns\\'..addonTocName..'\\Skins\\Default\\minimap');
+        ticon:SetTexCoord(0.05, 0.95, 0.05, 0.95);
+        ticon:SetPoint("TOPLEFT", 6, -5)
+        self.icon = ticon;
 
-	local flash = CreateFrame("Frame", "WIM3MinimapButtonFlash", self);
-	flash:SetFrameStrata('MEDIUM');
-	flash:SetParent(self);
-	flash:SetAllPoints(self);
-	flash:Show();
-	flash.texture = flash:CreateTexture(nil, "BORDER");
-	flash.texture:SetTexture('Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight');
-	flash.OnUpdate = function(self, elapsed)
-			    self.timeElapsed = (self.timeElapsed or 0) + elapsed;
-			    while(self.timeElapsed > 1) do
-				local minimap = self:GetParent();
-				if(NotificationIndex > #Notifications or not Notifications[NotificationIndex]) then
-				    minimap.icon:Show();
+        local flash = CreateFrame("Frame", "WIM3MinimapButtonFlash", self);
+        flash:SetFrameStrata('MEDIUM');
+        flash:SetParent(self);
+        flash:SetAllPoints(self);
+        flash:Show();
+        flash.texture = flash:CreateTexture(nil, "BORDER");
+        flash.texture:SetTexture('Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight');
+        flash.OnUpdate = function(self, elapsed)
+            self.timeElapsed = (self.timeElapsed or 0) + elapsed;
+            while(self.timeElapsed > 1) do
+                local minimap = self:GetParent();
+                if(NotificationIndex > #Notifications or not Notifications[NotificationIndex]) then
+                    minimap.icon:Show();
                     WIM.SetGradient(minimap.backGround, "VERTICAL", IconColor);
-				    minimap.text:Hide();
-				    NotificationIndex = 0; -- will be incremented at end of loop
-				else
-				    minimap:SetText(Notifications[NotificationIndex].text);
+                    minimap.text:Hide();
+                    NotificationIndex = 0; -- will be incremented at end of loop
+                else
+                    minimap:SetText(Notifications[NotificationIndex].text);
                     WIM.SetGradient(minimap.backGround, "VERTICAL", Notifications[NotificationIndex].color);
-				    minimap.text:Show();
-				    minimap.icon:Hide();
-				end
-				self.timeElapsed = 0;
-				NotificationIndex = NotificationIndex + 1
-			    end
-			    if(#Notifications == 0) then
-				NotificationIndex = 1;
-				self.timeElapsed = 0;
-				local minimap = self:GetParent();
-				minimap.text:Hide();
-				minimap.icon:Show();
+                    minimap.text:Show();
+                    minimap.icon:Hide();
+                end
+                self.timeElapsed = 0;
+                NotificationIndex = NotificationIndex + 1
+            end
+            if(#Notifications == 0) then
+                NotificationIndex = 1;
+                self.timeElapsed = 0;
+                local minimap = self:GetParent();
+                minimap.text:Hide();
+                minimap.icon:Show();
                 WIM.SetGradient(minimap.backGround, "VERTICAL", IconColor);
-				flash:Hide();
-			    end
-			end
-	flash:SetScript("OnUpdate", flash.OnUpdate);
+                flash:Hide();
+            end
+        end
+        flash:SetScript("OnUpdate", flash.OnUpdate);
         icon.flash = flash;
 
+        -- Restore minimap position on load
+        if(db.minimap.free) then
+            local free = db.minimap.free_position;
+            self:SetFrameStrata("DIALOG");
+            self:SetParent(_G.UIParent);
+            self:ClearAllPoints();
+            local scale = _G.UIParent:GetEffectiveScale();
+            self:SetPoint("CENTER", _G.UIParent, free.point, free.x/scale, free.y/scale)
+        else
+            self:SetFrameStrata(_G.Minimap:GetFrameStrata());
+            self:SetParent(_G.Minimap);
+            self:SetFrameLevel(8);
+            local angle = math.rad(db.minimap.position or 200);
+            local x, y, q = math.cos(angle), math.sin(angle), 1
+            if x < 0 then q = q + 1 end
+            if y > 0 then q = q + 2 end
+            local minimapShape = _G.GetMinimapShape and _G.GetMinimapShape() or 'ROUND';
+            local quadTable = minimapShapes[minimapShape]
+            local w = (_G.Minimap:GetWidth() / 2) + 5
+            local h = (_G.Minimap:GetHeight() / 2) + 5
+            if quadTable[q] then
+                x, y = x*w, y*h
+            else
+                local diagRadiusW = math.sqrt(2*(w)^2)-10
+                local diagRadiusH = math.sqrt(2*(h)^2)-10
+                x = math.max(-w, math.min(x*diagRadiusW, w))
+                y = math.max(-h, math.min(y*diagRadiusH, h))
+            end
+            self:ClearAllPoints();
+            self:SetPoint('CENTER', _G.Minimap, "CENTER", x, y);
+        end
 
-	self:SetScript('OnEnter', self.OnEnter);
-	self:SetScript('OnLeave', self.OnLeave);
-	self:SetScript('OnClick', self.OnClick);
-	self:SetScript('OnDragStart', self.OnDragStart);
-	self:SetScript('OnDragStop', self.OnDragStop);
-	self:SetScript('OnMouseDown', self.OnMouseDown);
-	self:SetScript('OnMouseUp', self.OnMouseUp);
+    self:SetScript('OnEnter', self.OnEnter);
+    self:SetScript('OnLeave', self.OnLeave);
+    self:SetScript('OnClick', self.OnClick);
+    self:SetScript('OnDragStart', self.OnDragStart);
+    self:SetScript('OnDragStop', self.OnDragStop);
+    self:SetScript('OnMouseDown', self.OnMouseDown);
+    self:SetScript('OnMouseUp', self.OnMouseUp);
     end
     icon.SetText = function(self, text)
 	text = text or "";
@@ -291,11 +322,22 @@ local function createMinimapIcon()
     end
     icon.OnDragStop = function(self)
         self.dragging = nil;
-	self:SetScript('OnUpdate', nil);
-	self.icon:SetTexCoord(0.05, 0.95, 0.05, 0.95);
-	self:UnlockHighlight();
+        self:SetScript('OnUpdate', nil);
+        self.icon:SetTexCoord(0.05, 0.95, 0.05, 0.95);
+        self:UnlockHighlight();
         self.registeredForDrag = nil;
         self:RegisterForDrag();
+        -- Save position after drag stop
+        if(db.minimap.free) then
+            local free = db.minimap.free_position;
+            free.point, free.x, free.y = getFreePoints((self:GetLeft() + self:GetWidth()/2)*self:GetEffectiveScale(), (self:GetTop() - self:GetHeight()/2)*self:GetEffectiveScale());
+        else
+            local mx, my = _G.Minimap:GetCenter();
+            local px, py = _G.GetCursorPosition();
+            local scale = _G.Minimap:GetEffectiveScale();
+            px, py = px / scale, py / scale;
+            db.minimap.position = math.deg(math.atan2(py - my, px - mx)) % 360;
+        end
     end
     icon.OnUpdate = function(self)
         local mx, my = _G.Minimap:GetCenter();

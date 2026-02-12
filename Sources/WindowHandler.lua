@@ -885,6 +885,17 @@ local function instantiateWindow(obj)
     widgets.msg_box:SetAltArrowKeyMode(true);
     widgets.msg_box:EnableMouse(true);
     widgets.msg_box.widgetName = "msg_box";
+        -- Allow item link insertion via shift-click/drag.
+        widgets.msg_box:SetScript("OnChar", function(self)
+                if (_G.IsShiftKeyDown() and arg1 == "[" and _G.ChatEdit_InsertLink) then
+                        _G.ChatEdit_InsertLink(_G.GetCursorInfo() or "");
+                end
+        end);
+        widgets.msg_box:SetScript("OnReceiveDrag", function(self)
+                if (_G.ChatEdit_InsertLink) then
+                        _G.ChatEdit_InsertLink(_G.GetCursorInfo() or "");
+                end
+        end);
 
     -- Addmessage functions
     obj.AddMessage = function(self, msg, ...)
@@ -2008,11 +2019,13 @@ RegisterWidgetTrigger("msg_box", "whisper,chat,w2w,demo", "OnUpdate", function(s
 
 RegisterWidgetTrigger("msg_box", "whisper,chat,w2w", "OnEditFocusGained", function(self)
                                 EditBoxInFocus = self;
-                                -- _G.ACTIVE_CHAT_EDIT_BOX = self; -- preserve linking abilities.
+                                WIM.EditBoxInFocus = self;
+                                _G.ACTIVE_CHAT_EDIT_BOX = self; -- preserve linking abilities.
                 end);
 RegisterWidgetTrigger("msg_box", "whisper,chat,w2w", "OnEditFocusLost", function(self)
                                 EditBoxInFocus = nil;
-                                -- _G.ACTIVE_CHAT_EDIT_BOX = nil;
+                                WIM.EditBoxInFocus = nil;
+                                _G.ACTIVE_CHAT_EDIT_BOX = nil;
                 end);
 RegisterWidgetTrigger("msg_box", "whisper,chat,w2w", "OnMouseUp", function(self, button)
                                 _G.CloseDropDownMenus();

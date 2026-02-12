@@ -1,8 +1,9 @@
         -- Global item link handler for WIM message box
         local orig_ChatEdit_InsertLink = _G.ChatEdit_InsertLink
         _G.ChatEdit_InsertLink = function(link)
-            if WIM_EditBoxInFocus and WIM_EditBoxInFocus:IsVisible() and WIM_EditBoxInFocus:HasFocus() then
-                WIM_EditBoxInFocus:Insert(link)
+            local focusBox = WIM_EditBoxInFocus or (WIM and WIM.EditBoxInFocus) or EditBoxInFocus
+            if focusBox and focusBox:IsVisible() and focusBox:HasFocus() then
+                focusBox:Insert(link)
                 return true
             end
             if orig_ChatEdit_InsertLink then
@@ -581,8 +582,18 @@ local function instantiateMessageWindowObj(obj)
     msg_box:SetScript("OnEnterPressed", MessageWindow_MsgBox_OnEnterPressed);
     msg_box:SetScript("OnEscapePressed", MessageWindow_MsgBox_OnEscapePressed);
     msg_box:SetScript("OnTabPressed", MessageWindow_MsgBox_OnTabPressed);
-    msg_box:SetScript("OnEditFocusGained", function() WIM_EditBoxInFocus = this; end);
-    msg_box:SetScript("OnEditFocusLost", function() WIM_EditBoxInFocus = nil; end);
+    msg_box:SetScript("OnEditFocusGained", function()
+        WIM_EditBoxInFocus = this;
+        if WIM then
+            WIM.EditBoxInFocus = this;
+        end
+    end);
+    msg_box:SetScript("OnEditFocusLost", function()
+        WIM_EditBoxInFocus = nil;
+        if WIM then
+            WIM.EditBoxInFocus = nil;
+        end
+    end);
     msg_box:SetScript("OnEnter", MessageWindow_FadeControler_OnEnter);
     msg_box:SetScript("OnLeave", MessageWindow_FadeControler_OnLeave);
     msg_box:SetScript("OnTextChanged", MessageWindow_MsgBox_OnTextChanged);
